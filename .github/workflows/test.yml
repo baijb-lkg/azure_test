@@ -1,0 +1,51 @@
+name: Validate Artifact Upload
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Detect if this is a rerun
+      id: is_rerun
+      run: |        
+        # github.run_attempt は1から始まります。1より大きければリトライまたは手動rerunです
+          RUN_ATTEMPT=${{ github.run_attempt }}
+          if [ "$RUN_ATTEMPT" -gt 1 ]; then
+           echo "rerun=true" >> $GITHUB_OUTPUT
+          else
+           echo "rerun=false" >> $GITHUB_OUTPUT
+          fi
+    
+    - name: Generate diff file (example)
+      if: steps.is_rerun.outputs.rerun != 'true'
+      run: |
+        mkdir diff
+        echo "This is a diff file content" > diff/sample.diff
+    
+    - name: Download trigger diff artifact if rerun
+      if: steps.is_rerun.outputs.rerun == 'true'
+      uses: actions/download-artifact@v4
+      with:
+          name: trigger-diff
+
+    - name: Save diff artifact
+      if: steps.is_rerun.outputs.rerun != 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: trigger-diff
+        path: diff/
+        overwrite: true
+
+    - name: Verify artifact is uploaded
+      run: |
+        echo "Artifact uploaded and saved as 'trigger-diff'."
+        ls -l diff
