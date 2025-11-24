@@ -49,3 +49,10 @@ jobs:
       run: |
         echo "Artifact uploaded and saved as 'trigger-diff'."
         ls -l diff
+
+    # 这个步骤故意触发失败，模拟一个错误
+    - name: Simulate failure after upload
+      if: steps.is_rerun.outputs.rerun != 'true'
+      run: |
+        echo "This step will fail deliberately."
+        exit 1  # 这个命令将使得当前步骤失败，从而触发重试机制
