@@ -2,9 +2,9 @@ name: Validate Artifact Upload
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
   build:
